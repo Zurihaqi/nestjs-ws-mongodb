@@ -8,6 +8,7 @@ This is a real-time chat application built using NestJS, WebSockets, and MongoDB
 - WebSocket real-time messaging
 - User authentication with JWT
 - Message sending to specific users
+- Store the messages in mongodb
 
 ## Installation
 
@@ -37,7 +38,7 @@ This is a real-time chat application built using NestJS, WebSockets, and MongoDB
 - POST /auth/login: Login and get a JWT token
 - WebSocket (sendMessage): Send messages to specific users
 
-Full docs in http://localhost:3000/api
+Swagger docs in http://localhost:3000/api
 
 Test out the sample chat client in http://localhost:3000/
 
@@ -47,6 +48,7 @@ Test out the sample chat client in http://localhost:3000/
 - WebSocket with Socket.io
 - MongoDB
 - JWT Authentication
+- Swagger
 
 ## Screenshots
 
