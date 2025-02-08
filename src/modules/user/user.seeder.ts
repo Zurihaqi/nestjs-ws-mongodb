@@ -20,9 +20,9 @@ export class UserSeeder {
       });
 
       await user.save();
-      this.logger.log('User seeded:', user);
+      this.logger.debug('User seeded:', user);
     } else {
-      this.logger.log('User already exists, skipping seeding');
+      this.logger.debug('User already exists, skipping seeding');
     }
   }
 }

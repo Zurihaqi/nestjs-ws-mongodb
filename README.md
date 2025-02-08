@@ -36,6 +36,8 @@ This is a real-time chat application built using NestJS, WebSockets, and MongoDB
 
 - POST /auth/register: Register a new user
 - POST /auth/login: Login and get a JWT token
+- GET /chat: Get all chat history of the currently logged in user
+- GET /chat/{recipientId}: Get chat history by a specific recipient
 - WebSocket (sendMessage): Send messages to specific users
 
 Swagger docs in http://localhost:3000/api
@@ -53,3 +55,4 @@ Test out the sample chat client in http://localhost:3000/
 ## Screenshots
 
 ![alt text](public/image.png)
+![alt text](public/swagger.png)

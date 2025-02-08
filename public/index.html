@@ -172,8 +172,8 @@
     </div>
 
     <script>
-      let sockets = {};
-      let userIds = {};
+      let sockets = [];
+      let userIds = [];
 
       function updateConnectionState(chatId, isConnected) {
         document.getElementById(`connectBtn${chatId}`).disabled = isConnected;
@@ -193,6 +193,48 @@
           updateConnectionState(chatId, false);
           addMessage(chatId, 'System: Manually disconnected', 'system');
         }
+      }
+
+      function fetchChatHistory(chatId) {
+        const token = document.getElementById(`token${chatId}`).value;
+        const recipientId = document.getElementById(
+          `recipientId${chatId}`
+        ).value;
+
+        if (!token) {
+          return;
+        }
+
+        if (!recipientId) {
+          addMessage(chatId, 'System: Please enter a recipient ID', 'system');
+          return;
+        }
+
+        fetch(`/chat/${recipientId}`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            // Clear existing messages
+            document.getElementById(`messages${chatId}`).innerHTML = '';
+
+            data.forEach((message) => {
+              const direction =
+                message.senderId === userIds[chatId] ? 'sent' : 'received';
+              addMessage(
+                chatId,
+                `User ${message.senderId}: ${message.content}`,
+                direction
+              );
+            });
+          })
+          .catch((error) => {
+            console.error('Error fetching message history:', error);
+            addMessage(chatId, 'System: Error fetching chat history', 'system');
+          });
       }
 
       function connect(chatId) {
@@ -242,11 +284,12 @@
         });
 
         sockets[chatId].on('receiveMessage', (message) => {
+          console.log(message);
           const direction =
-            message.userId === userIds[chatId] ? 'sent' : 'received';
+            message.senderId === userIds[chatId] ? 'sent' : 'received';
           addMessage(
             chatId,
-            `User ${message.userId}: ${message.content}`,
+            `User ${message.senderId}: ${message.content}`,
             direction
           );
         });
@@ -292,8 +335,9 @@
         messages.scrollTop = messages.scrollHeight;
       }
 
-      // Add Enter key listeners for both chat windows
+      // Add event listeners
       [1, 2].forEach((chatId) => {
+        // Message input Enter key handler
         document
           .getElementById(`messageInput${chatId}`)
           .addEventListener('keypress', (e) => {
@@ -301,7 +345,21 @@
               sendMessage(chatId);
             }
           });
+
+        // Recipient ID change handler
+        document
+          .getElementById(`recipientId${chatId}`)
+          .addEventListener('change', () => {
+            fetchChatHistory(chatId);
+          });
       });
+      document
+        .getElementById(`messageInput${chatId}`)
+        .addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            sendMessage(chatId);
+          }
+        });
     </script>
   </body>
 </html>

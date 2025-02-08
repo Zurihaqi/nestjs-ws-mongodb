@@ -4,7 +4,11 @@ import { IsString } from 'class-validator';
 export class CreateMessageDto {
   @ApiProperty({ type: String, description: 'User ID' })
   @IsString()
-  userId: string;
+  senderId: string;
+
+  @ApiProperty({ type: String, description: 'Recipient ID' })
+  @IsString()
+  recipientId: string;
 
   @ApiProperty({ type: String, description: 'Message content' })
   @IsString()
