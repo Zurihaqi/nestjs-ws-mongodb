@@ -23,6 +23,7 @@ export class ChatController {
     description: 'Success get message history'
   })
   @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  @ApiBearerAuth()
   @Get(':recipientId')
   async getMessagesByRecipientId(
     @Param('recipientId') recipientId: string,
@@ -43,6 +44,7 @@ export class ChatController {
     description: 'Success get message history'
   })
   @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  @ApiBearerAuth()
   @Get()
   async getMessages(@Req() request: any) {
     const loggedInUserId = request.user.userId;
