@@ -17,10 +17,10 @@ export class AuthService {
   }
 
   async login(
-    username: string,
+    email: string,
     password: string
   ): Promise<{ accessToken: string }> {
-    const user = await this.userService.findUser(username);
+    const user = await this.userService.findUser(email);
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException('Invalid credentials');
     }

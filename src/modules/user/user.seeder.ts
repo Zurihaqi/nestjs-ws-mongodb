@@ -15,7 +15,8 @@ export class UserSeeder {
     if (userCount === 0) {
       const hashedPassword = await bcrypt.hash('password', 10);
       const user = new this.userModel({
-        username: 'Admin',
+        username: 'admin',
+        email: 'admin@mail.com',
         password: hashedPassword
       });
 

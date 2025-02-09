@@ -15,11 +15,11 @@ export class UserService {
     return user.save();
   }
 
-  async findUser(username: string): Promise<User | null> {
-    return this.userModel.findOne({ username }).exec();
+  async findUser(email: string): Promise<User | null> {
+    return this.userModel.findOne({ email }).exec();
   }
 
   async findUserById(id: string): Promise<User | null> {
-    return this.userModel.findById(id).exec();
+    return await this.userModel.findById(id).select('-password').exec();
   }
 }

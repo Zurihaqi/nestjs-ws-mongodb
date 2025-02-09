@@ -34,6 +34,6 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   @Post('login')
   login(@Body() dto: LoginDto) {
-    return this.authService.login(dto.username, dto.password);
+    return this.authService.login(dto.email, dto.password);
   }
 }

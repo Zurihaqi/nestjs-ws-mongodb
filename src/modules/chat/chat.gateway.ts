@@ -9,18 +9,21 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
-import { JwtService } from '@nestjs/jwt';
 import { Logger } from '@nestjs/common';
+import { UserService } from '../user/user.service';
+import { CreateMessageDto } from './dto/create-message.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @WebSocketGateway({ cors: true })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(ChatGateway.name);
 
   @WebSocketServer() server: Server;
-  private users = new Map<string, string>(); // Store userId -> socketId
+  private users = new Map<string, string>(); // Map<socketId, userId>
 
   constructor(
     private readonly chatService: ChatService,
+    private readonly userService: UserService,
     private readonly jwtService: JwtService
   ) {}
 
@@ -30,8 +33,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (!token) throw new Error('No token provided');
 
       const payload = this.jwtService.verify(token);
-      this.users.set(client.id, payload.userId);
-      this.logger.log(`User ${payload.userId} connected`);
+      const userId = payload.userId;
+
+      this.users.set(client.id, userId);
+      this.logger.log(`User ${userId} connected`);
     } catch (error) {
       client.disconnect();
       this.logger.error('Unauthorized connection attempt', error.stack);
@@ -50,35 +55,38 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: { recipientId: string; message: string }
   ) {
     const senderId = this.users.get(client.id);
+
     if (!senderId) {
-      this.logger.warn(`Message attempt from unauthorized user: ${client.id}`);
+      this.logger.warn(`Unauthorized message attempt: ${client.id}`);
+      return;
+    }
+
+    const sender = await this.userService.findUserById(senderId);
+    const recipient = await this.userService.findUserById(data.recipientId);
+
+    if (!recipient) {
+      this.logger.warn(`Recipient ${data.recipientId} not found`);
       return;
     }
 
     const recipientSocketId = [...this.users.entries()].find(
-      ([socketId, userId]) => userId === data.recipientId
+      ([_, id]) => id === data.recipientId
     )?.[0];
-
-    if (!recipientSocketId) {
-      this.logger.warn(`Recipient user with ID ${data.recipientId} not found`);
-      return;
-    }
 
     try {
       const message = await this.chatService.createMessage({
-        senderId: senderId,
-        recipientId: data.recipientId,
+        sender,
+        recipient,
         content: data.message
-      });
-      this.server.to(recipientSocketId).emit('receiveMessage', message);
-      this.logger.debug(
-        `Message sent from user ${senderId} to ${data.recipientId}: ${data.message}`
-      );
+      } as CreateMessageDto);
+
+      if (recipientSocketId) {
+        this.server.to(recipientSocketId).emit('receiveMessage', message);
+      }
+
+      this.logger.debug(`Message sent from ${senderId} to ${data.recipientId}`);
     } catch (error) {
-      this.logger.error(
-        `Error sending message from user ${senderId}`,
-        error.stack
-      );
+      this.logger.error(`Error sending message from ${senderId}`, error.stack);
     }
   }
 }

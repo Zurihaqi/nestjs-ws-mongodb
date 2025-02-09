@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { Message } from './schemas/message.schema';
 import { CreateMessageDto } from './dto/create-message.dto';
 
@@ -12,8 +12,8 @@ export class ChatService {
 
   async createMessage(dto: CreateMessageDto): Promise<Message> {
     const message = new this.messageModel({
-      senderId: dto.senderId,
-      recipientId: dto.recipientId,
+      sender: dto.sender,
+      recipient: dto.recipient,
       content: dto.content
     });
     return message.save();
@@ -26,14 +26,24 @@ export class ChatService {
     return this.messageModel
       .find({
         $or: [
-          { senderId: userId, recipientId: otherUserId },
-          { senderId: otherUserId, recipientId: userId }
+          {
+            'sender._id': new mongoose.Types.ObjectId(userId),
+            'recipient._id': new mongoose.Types.ObjectId(otherUserId)
+          },
+          {
+            'sender._id': new mongoose.Types.ObjectId(otherUserId),
+            'recipient._id': new mongoose.Types.ObjectId(userId)
+          }
         ]
       })
-      .sort({ createdAt: 1 });
+      .sort({ createdAt: 1 })
+      .exec();
   }
 
-  async getAllMessages(id: String): Promise<Message[]> {
-    return this.messageModel.find({ senderId: id }).sort({ createdAt: 1 });
+  async getAllMessages(id: string): Promise<Message[]> {
+    return this.messageModel
+      .find({ 'sender._id': new mongoose.Types.ObjectId(id) })
+      .sort({ createdAt: 1 })
+      .exec();
   }
 }

@@ -1,14 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
+import { UserDto } from 'src/modules/user/dto/user.dto';
 
 export class CreateMessageDto {
   @ApiProperty({ type: String, description: 'User ID' })
   @IsString()
-  senderId: string;
+  sender: UserDto;
 
   @ApiProperty({ type: String, description: 'Recipient ID' })
   @IsString()
-  recipientId: string;
+  recipient: UserDto;
 
   @ApiProperty({ type: String, description: 'Message content' })
   @IsString()
